@@ -185,7 +185,13 @@ export class PinchZoomComponent implements OnInit {
 
         // Swipe
         if (this.detectSwipe(touches) || this.eventType === 'swipe') {
-            this.handleSwipe(event);
+            
+            if(this.scale == 1){
+                return;
+            } else {
+                this.handleSwipe(event);
+            }
+            
         }
 
         // Linear swipe
@@ -193,7 +199,12 @@ export class PinchZoomComponent implements OnInit {
             this.eventType === 'horizontal-swipe' ||
             this.eventType === 'vertical-swipe') {
 
-            this.handleLinearSwipe(event);
+                if(this.scale == 1){
+                    return;
+                } else {
+                    this.handleLinearSwipe(event);
+                }
+            
         }
 
         // Pinch
@@ -293,6 +304,7 @@ export class PinchZoomComponent implements OnInit {
         this.moveX = this.initialMoveX + (this.moveLeft(0, event.touches) - this.startX);
         this.moveY = this.initialMoveY + (this.moveTop(0, event.touches) - this.startY);
 
+        this.centeringImage();
         this.transformElement(0);
     }
 
@@ -300,7 +312,7 @@ export class PinchZoomComponent implements OnInit {
         event.preventDefault();
 
         const touches = event.touches;
-
+        
         if (!this.eventType) {
             this.initialDistance = this.getDistance(touches);
 
@@ -316,14 +328,20 @@ export class PinchZoomComponent implements OnInit {
         this.eventType = 'pinch';
         this.distance = this.getDistance(touches);
         this.scale = this.initialScale * (this.distance / this.initialDistance);
+
         this.events.emit({ 
             type: 'pinch', 
             scale: this.scale 
         });
 
+        if(this.scale < 1){
+            this.scale = 1;
+        }
+        
         this.moveX = this.initialMoveX - (((this.distance / this.initialDistance) * this.moveXC) - this.moveXC);
         this.moveY = this.initialMoveY - (((this.distance / this.initialDistance) * this.moveYC) - this.moveYC);
 
+        this.centeringImage();
         this.transformElement(0);
     }
 
@@ -546,6 +564,8 @@ export class PinchZoomComponent implements OnInit {
 
     transitionYRestriction(): void {
         const imgHeight = this.getImageHeight();
+
+        console.log(imgHeight);
 
         if (imgHeight * this.scale < this.parentElement.offsetHeight) {
             this.moveY = (this.parentElement.offsetHeight - this.element.offsetHeight * this.scale) / 2;
